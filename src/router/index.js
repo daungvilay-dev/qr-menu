@@ -7,6 +7,8 @@ const PublicLayout = () => import('@/layouts/PublicLayout.vue')
 const Login = () => import('@/pages/auth/Login.vue')
 const Register = () => import('@/pages/auth/Register.vue')
 const Dashboard = () => import('@/pages/admin/Dashboard.vue')
+const Restaurants = () => import('@/pages/admin/Restaurants.vue')
+const Branches = () => import('@/pages/admin/Branches.vue')
 const Categories = () => import('@/pages/admin/Categories.vue')
 const MenuItems = () => import('@/pages/admin/MenuItems.vue')
 const QRCode = () => import('@/pages/admin/QRCode.vue')
@@ -25,6 +27,7 @@ const routes = [
         path: '',
         name: 'public-menu',
         component: Menu,
+        meta: { title: 'ເມນູ QR' },
       },
     ],
   },
@@ -32,13 +35,13 @@ const routes = [
     path: '/auth/login',
     name: 'login',
     component: Login,
-    meta: { guestOnly: true },
+    meta: { guestOnly: true, title: 'ເຂົ້າສູ່ລະບົບ' },
   },
   {
     path: '/auth/register',
     name: 'register',
     component: Register,
-    meta: { guestOnly: true },
+    meta: { guestOnly: true, title: 'ສ້າງບັນຊີ' },
   },
   {
     path: '/admin',
@@ -49,21 +52,37 @@ const routes = [
         path: '',
         name: 'dashboard',
         component: Dashboard,
+        meta: { title: 'ໜ້າຫຼັກ' },
+      },
+      {
+        path: 'restaurants',
+        name: 'restaurants',
+        component: Restaurants,
+        meta: { title: 'ຮ້ານອາຫານ' },
+      },
+      {
+        path: 'branches',
+        name: 'branches',
+        component: Branches,
+        meta: { title: 'ສາຂາ' },
       },
       {
         path: 'categories',
         name: 'categories',
         component: Categories,
+        meta: { title: 'ໝວດໝູ່' },
       },
       {
         path: 'menu-items',
         name: 'menu-items',
         component: MenuItems,
+        meta: { title: 'ລາຍການເມນູ' },
       },
       {
         path: 'qr-codes',
         name: 'qr-codes',
         component: QRCode,
+        meta: { title: 'ລະຫັດ QR' },
       },
     ],
   },
@@ -80,6 +99,8 @@ const router = createRouter({
 router.beforeEach((to) => {
   const authStore = useAuthStore()
   authStore.hydrate()
+
+  document.title = to.meta.title ? `${to.meta.title} | ເມນູ QR` : 'ເມນູ QR'
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }

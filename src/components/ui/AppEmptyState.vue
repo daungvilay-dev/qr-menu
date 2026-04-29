@@ -1,7 +1,7 @@
 <template>
-  <div class="rounded-3xl border border-dashed border-stone-300 bg-white/70 p-10 text-center shadow-card">
-    <h3 class="text-lg font-semibold text-stone-900">{{ title }}</h3>
-    <p class="mt-2 text-sm text-stone-600">{{ description }}</p>
+  <div class="rounded-3xl border border-dashed border-navy-500 bg-navy-700/50 p-10 text-center shadow-card">
+    <h3 class="text-lg font-semibold text-slate-100">{{ title }}</h3>
+    <p class="mt-2 text-sm text-slate-400">{{ description }}</p>
   </div>
 </template>
 

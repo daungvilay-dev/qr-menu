@@ -5,14 +5,14 @@
       title="Menu Items"
       description="Manage dishes and their linked variants and addons from one workspace."
     >
-      <a-button type="primary" class="!bg-brand-600 !shadow-none hover:!bg-brand-700" @click="openCreateModal">
+      <a-button type="primary" class="!bg-brand-500 !shadow-none hover:!bg-brand-600" @click="openCreateModal">
         Add menu item
       </a-button>
     </AppPageHeader>
 
     <AppLoading v-if="menuStore.isLoading('menus') || menuStore.isLoading('categories')" />
 
-    <div v-else class="rounded-[28px] border border-stone-200 bg-white/80 p-4 shadow-card">
+    <div v-else class="rounded-[28px] border border-navy-500/50 bg-navy-700/50 p-4 shadow-card backdrop-blur">
       <a-table :data-source="menuStore.menuItems" :pagination="false" row-key="id" :scroll="{ x: 900 }">
         <a-table-column title="Name" data-index="name" key="name" />
         <a-table-column title="Category" key="category">
@@ -97,11 +97,11 @@
       @close="closeOptionsDrawer"
     >
       <div v-if="selectedMenuForOptions" class="space-y-8">
-        <section class="rounded-[24px] border border-stone-200 bg-stone-50 p-5">
+        <section class="rounded-[24px] border border-navy-500/50 bg-navy-700/50 p-5">
           <div class="mb-4 flex items-center justify-between">
             <div>
-              <h3 class="text-lg font-semibold text-stone-900">Variants</h3>
-              <p class="text-sm text-stone-600">Variant pricing uses `priceDeltaCents` from the backend.</p>
+              <h3 class="text-lg font-semibold text-slate-100">Variants</h3>
+              <p class="text-sm text-slate-400">Variant pricing uses `priceDeltaCents` from the backend.</p>
             </div>
             <a-button @click="openVariantModal()">Add variant</a-button>
           </div>
@@ -138,15 +138,15 @@
           </a-table>
         </section>
 
-        <section class="rounded-[24px] border border-stone-200 bg-stone-50 p-5">
+        <section class="rounded-[24px] border border-navy-500/50 bg-navy-700/50 p-5">
           <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h3 class="text-lg font-semibold text-stone-900">Addons</h3>
-              <p class="text-sm text-stone-600">Create addon definitions, then link the ones this item can use.</p>
+              <h3 class="text-lg font-semibold text-slate-100">Addons</h3>
+              <p class="text-sm text-slate-400">Create addon definitions, then link the ones this item can use.</p>
             </div>
             <div class="flex gap-2">
               <a-button @click="openAddonModal()">Add addon</a-button>
-              <a-button type="primary" class="!bg-brand-600 !shadow-none hover:!bg-brand-700" @click="saveAddonLinks">
+              <a-button type="primary" class="!bg-brand-500 !shadow-none hover:!bg-brand-600" @click="saveAddonLinks">
                 Save linked addons
               </a-button>
             </div>
@@ -180,15 +180,15 @@
               </a-table-column>
             </a-table>
 
-            <div class="rounded-[20px] border border-dashed border-stone-300 bg-white p-4">
-              <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-700">Linked now</p>
-              <ul class="mt-3 space-y-2 text-sm text-stone-700">
-                <li v-for="addon in linkedAddonObjects" :key="addon.id" class="flex items-center justify-between rounded-xl bg-stone-50 px-3 py-2">
+            <div class="rounded-[20px] border border-dashed border-navy-500/50 bg-navy-800/50 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-400">Linked now</p>
+              <ul class="mt-3 space-y-2 text-sm text-slate-300">
+                <li v-for="addon in linkedAddonObjects" :key="addon.id" class="flex items-center justify-between rounded-xl bg-navy-600 px-3 py-2">
                   <span>{{ addon.name }}</span>
                   <span>{{ formatCurrency(addon.price, addon.currency) }}</span>
                 </li>
               </ul>
-              <p v-if="!linkedAddonObjects.length" class="mt-3 text-sm text-stone-500">
+              <p v-if="!linkedAddonObjects.length" class="mt-3 text-sm text-slate-500">
                 No addons linked yet.
               </p>
             </div>

@@ -6,12 +6,12 @@
       description="Quick access to the three admin surfaces shipped in the first version of the QR menu frontend."
     />
 
-    <div class="grid gap-4 md:grid-cols-3">
-      <div v-for="card in cards" :key="card.title" class="rounded-[28px] border border-stone-200 bg-white/80 p-6 shadow-card">
-        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-700">{{ card.eyebrow }}</p>
-        <h2 class="mt-3 text-xl font-semibold text-stone-900">{{ card.title }}</h2>
-        <p class="mt-2 text-sm text-stone-600">{{ card.description }}</p>
-        <router-link :to="card.to" class="mt-5 inline-flex font-semibold text-brand-700">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div v-for="card in cards" :key="card.title" class="rounded-[28px] border border-navy-500/50 bg-navy-700/50 p-6 shadow-card backdrop-blur">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-400">{{ card.eyebrow }}</p>
+        <h2 class="mt-3 text-xl font-semibold text-slate-100">{{ card.title }}</h2>
+        <p class="mt-2 text-sm text-slate-400">{{ card.description }}</p>
+        <router-link :to="card.to" class="mt-5 inline-flex font-semibold text-brand-400 hover:text-brand-300">
           Open
         </router-link>
       </div>
@@ -23,6 +23,18 @@
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 
 const cards = [
+  {
+    eyebrow: 'Workspace',
+    title: 'Restaurants',
+    description: 'Manage restaurant records, owner assignments, contact details, and active status.',
+    to: { name: 'restaurants' },
+  },
+  {
+    eyebrow: 'Workspace',
+    title: 'Branches',
+    description: 'Manage branch records used by QR codes and branch-specific menu targeting.',
+    to: { name: 'branches' },
+  },
   {
     eyebrow: 'Catalog',
     title: 'Categories',

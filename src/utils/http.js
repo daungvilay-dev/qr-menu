@@ -31,10 +31,33 @@ export function normalizeCollection(payload) {
 }
 
 export function getErrorMessage(error, fallback = 'Something went wrong') {
-  return (
-    error?.response?.data?.message ||
-    error?.response?.data?.error ||
-    error?.message ||
-    fallback
-  )
+  const responseData = error?.response?.data
+  const message = responseData?.message
+  const errorField = responseData?.error
+
+  if (Array.isArray(message) && message.length) {
+    return message.join(', ')
+  }
+
+  if (typeof message === 'string' && message.trim()) {
+    return message
+  }
+
+  if (Array.isArray(errorField) && errorField.length) {
+    return errorField.join(', ')
+  }
+
+  if (typeof errorField === 'string' && errorField.trim()) {
+    return errorField
+  }
+
+  if (typeof responseData === 'string' && responseData.trim()) {
+    return responseData
+  }
+
+  if (typeof error?.message === 'string' && error.message.trim()) {
+    return error.message
+  }
+
+  return fallback
 }

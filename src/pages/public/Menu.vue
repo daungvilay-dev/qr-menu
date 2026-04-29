@@ -1,16 +1,16 @@
 <template>
   <div class="space-y-6">
-    <section class="overflow-hidden rounded-[32px] border border-white/60 bg-white/80 shadow-card">
-      <div class="bg-brand-950 px-6 py-8 text-white">
-        <p class="text-xs uppercase tracking-[0.35em] text-brand-200">QR Menu</p>
+    <section class="overflow-hidden rounded-[32px] border border-white/10 bg-navy-700/80 shadow-card">
+      <div class="bg-navy-950 px-6 py-8 text-white">
+        <p class="text-xs uppercase tracking-[0.35em] text-brand-300">QR Menu</p>
         <div class="mt-3 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 class="font-display text-4xl">{{ restaurantName }}</h1>
-            <p class="mt-2 text-sm text-stone-300">
+            <p class="mt-2 text-sm text-slate-400">
               {{ branchMeta }}
             </p>
           </div>
-          <div class="rounded-2xl bg-white/10 px-4 py-3 text-sm text-stone-100">
+          <div class="rounded-2xl bg-white/10 px-4 py-3 text-sm text-slate-300 font-mono">
             <p>Table: {{ menuStore.publicMenu?.qrcode?.tableNumber || 'Walk-in' }}</p>
             <p>Scan count: {{ menuStore.publicMenu?.qrcode?.scanCount || 0 }}</p>
           </div>
@@ -35,14 +35,14 @@
     />
 
     <template v-else>
-      <section class="sticky top-4 z-10 overflow-x-auto rounded-[24px] border border-stone-200 bg-white/85 p-3 shadow-card backdrop-blur">
+      <section class="sticky top-4 z-10 overflow-x-auto rounded-[24px] border border-navy-500/50 bg-navy-800/85 p-3 shadow-card backdrop-blur">
         <div class="flex gap-2">
           <button
             v-for="category in menuStore.publicCategories"
             :key="category.id"
             type="button"
             class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition"
-            :class="activeCategoryId === category.id ? 'bg-brand-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'"
+            :class="activeCategoryId === category.id ? 'bg-brand-500 text-white' : 'bg-navy-600 text-slate-300 hover:bg-navy-500'"
             @click="scrollToCategory(category.id)"
           >
             {{ category.name }}
@@ -59,13 +59,13 @@
         >
           <div class="flex items-end justify-between gap-4">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-700">Category</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-400">Category</p>
               <h2 class="section-title">{{ category.name }}</h2>
             </div>
-            <p class="text-sm text-stone-500">{{ category.menus?.length || 0 }} items</p>
+            <p class="text-sm text-slate-500">{{ category.menus?.length || 0 }} items</p>
           </div>
 
-          <p v-if="category.description" class="max-w-3xl text-sm text-stone-600">
+          <p v-if="category.description" class="max-w-3xl text-sm text-slate-400">
             {{ category.description }}
           </p>
 

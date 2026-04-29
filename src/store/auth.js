@@ -44,6 +44,12 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response?.user || null
       persist()
       return response
+    } catch (error) {
+      accessToken.value = ''
+      refreshToken.value = ''
+      user.value = null
+      clearStoredAuth()
+      throw error
     } finally {
       loading.value = false
     }

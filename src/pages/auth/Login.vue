@@ -1,9 +1,9 @@
 <template>
   <div class="flex min-h-screen items-center justify-center px-4 py-10">
-    <div class="glass-panel w-full max-w-md rounded-[32px] border border-white/60 p-8 shadow-card">
-      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-700">Admin Access</p>
-      <h1 class="mt-3 font-display text-4xl text-stone-900">Welcome back</h1>
-      <p class="mt-2 text-sm text-stone-600">
+    <div class="glass-panel w-full max-w-md rounded-[32px] border border-white/10 p-8 shadow-card">
+      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-400">Admin Access</p>
+      <h1 class="mt-3 font-display text-4xl text-white">Welcome back</h1>
+      <p class="mt-2 text-sm text-slate-400">
         Sign in to manage your categories, menu items, and QR codes.
       </p>
 
@@ -23,14 +23,14 @@
           <a-input-password v-model:value="formState.password" size="large" placeholder="••••••••" />
         </a-form-item>
 
-        <a-button type="primary" html-type="submit" size="large" class="mt-2 w-full !bg-brand-600 !shadow-none hover:!bg-brand-700" :loading="authStore.loading">
+        <a-button type="primary" html-type="submit" size="large" class="mt-2 w-full !bg-brand-500 !shadow-none hover:!bg-brand-600" :loading="authStore.loading">
           Sign in
         </a-button>
       </a-form>
 
-      <p class="mt-6 text-center text-sm text-stone-600">
+      <p class="mt-6 text-center text-sm text-slate-400">
         Need a new restaurant account?
-        <router-link class="font-semibold text-brand-700" :to="{ name: 'register' }">
+        <router-link class="font-semibold text-brand-400 hover:text-brand-300" :to="{ name: 'register' }">
           Register here
         </router-link>
       </p>

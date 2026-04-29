@@ -1,9 +1,9 @@
 <template>
   <div class="flex min-h-screen items-center justify-center px-4 py-10">
-    <div class="glass-panel w-full max-w-3xl rounded-[32px] border border-white/60 p-8 shadow-card">
-      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-700">Restaurant Onboarding</p>
-      <h1 class="mt-3 font-display text-4xl text-stone-900">Create owner account</h1>
-      <p class="mt-2 text-sm text-stone-600">
+    <div class="glass-panel w-full max-w-3xl rounded-[32px] border border-white/10 p-8 shadow-card">
+      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-400">Restaurant Onboarding</p>
+      <h1 class="mt-3 font-display text-4xl text-white">Create owner account</h1>
+      <p class="mt-2 text-sm text-slate-400">
         The current backend creates the user first, then creates the restaurant profile tied to that user.
       </p>
 
@@ -53,10 +53,10 @@
         </a-form-item>
 
         <div class="md:col-span-2">
-          <a-button type="primary" html-type="submit" size="large" class="mt-2 !bg-brand-600 !shadow-none hover:!bg-brand-700" :loading="authStore.loading">
+          <a-button type="primary" html-type="submit" size="large" class="mt-2 !bg-brand-500 !shadow-none hover:!bg-brand-600" :loading="authStore.loading">
             Create account
           </a-button>
-          <router-link class="ml-4 text-sm font-semibold text-brand-700" :to="{ name: 'login' }">
+          <router-link class="ml-4 text-sm font-semibold text-brand-400 hover:text-brand-300" :to="{ name: 'login' }">
             Back to login
           </router-link>
         </div>

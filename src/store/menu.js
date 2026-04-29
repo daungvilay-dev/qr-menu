@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 import {
   addonsApi,
+  branchesApi,
   categoriesApi,
   itemAddonsApi,
   menusApi,
@@ -14,6 +15,8 @@ import {
 export const useMenuStore = defineStore('menu', () => {
   const categories = ref([])
   const categoriesTotal = ref(0)
+  const branches = ref([])
+  const branchesTotal = ref(0)
   const menuItems = ref([])
   const menuItemsTotal = ref(0)
   const qrCodes = ref([])
@@ -62,6 +65,33 @@ export const useMenuStore = defineStore('menu', () => {
   async function deleteCategory(id) {
     await categoriesApi.remove(id)
     return fetchCategories()
+  }
+
+  async function fetchBranches(params = {}) {
+    setLoading('branches', true)
+    try {
+      const response = await branchesApi.list(params)
+      branches.value = response.items
+      branchesTotal.value = response.total
+      return response
+    } finally {
+      setLoading('branches', false)
+    }
+  }
+
+  async function saveBranch(payload, id) {
+    if (id) {
+      await branchesApi.update(id, payload)
+    } else {
+      await branchesApi.create(payload)
+    }
+
+    return fetchBranches()
+  }
+
+  async function deleteBranch(id) {
+    await branchesApi.remove(id)
+    return fetchBranches()
   }
 
   async function fetchMenuItems(params = {}) {
@@ -140,10 +170,11 @@ export const useMenuStore = defineStore('menu', () => {
   }
 
   async function fetchLinkedAddons(menuId) {
-    const items = await fetchAddons({ menuId })
+    const response = await itemAddonsApi.list({ menuId })
+    const items = response.items || []
     linkedAddonsByMenuId.value = {
       ...linkedAddonsByMenuId.value,
-      [menuId]: items.map((item) => item.id),
+      [menuId]: items.map((item) => item.addonId ?? item.addon?.id).filter(Boolean),
     }
     return items
   }
@@ -176,6 +207,16 @@ export const useMenuStore = defineStore('menu', () => {
 
   async function createQrCode(payload) {
     await qrCodesApi.create(payload)
+    return fetchQrCodes()
+  }
+
+  async function updateQrCode(id, payload) {
+    await qrCodesApi.update(id, payload)
+    return fetchQrCodes()
+  }
+
+  async function deleteQrCode(id) {
+    await qrCodesApi.remove(id)
     return fetchQrCodes()
   }
 
@@ -246,6 +287,8 @@ export const useMenuStore = defineStore('menu', () => {
   return {
     categories,
     categoriesTotal,
+    branches,
+    branchesTotal,
     menuItems,
     menuItemsTotal,
     qrCodes,
@@ -266,6 +309,9 @@ export const useMenuStore = defineStore('menu', () => {
     currentTotal,
     isLoading,
     fetchCategories,
+    fetchBranches,
+    saveBranch,
+    deleteBranch,
     saveCategory,
     deleteCategory,
     fetchMenuItems,
@@ -281,6 +327,8 @@ export const useMenuStore = defineStore('menu', () => {
     syncMenuAddons,
     fetchQrCodes,
     createQrCode,
+    updateQrCode,
+    deleteQrCode,
     fetchPublicMenu,
     openItem,
     closeItem,

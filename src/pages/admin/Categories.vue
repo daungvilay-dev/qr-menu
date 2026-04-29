@@ -5,14 +5,14 @@
       title="Categories"
       description="Create and maintain the sections customers browse in the public menu."
     >
-      <a-button type="primary" class="!bg-brand-600 !shadow-none hover:!bg-brand-700" @click="openCreateModal">
+      <a-button type="primary" class="!bg-brand-500 !shadow-none hover:!bg-brand-600" @click="openCreateModal">
         Add category
       </a-button>
     </AppPageHeader>
 
     <AppLoading v-if="menuStore.isLoading('categories')" />
 
-    <div v-else class="rounded-[28px] border border-stone-200 bg-white/80 p-4 shadow-card">
+    <div v-else class="rounded-[28px] border border-navy-500/50 bg-navy-700/50 p-4 shadow-card backdrop-blur">
       <a-table :data-source="menuStore.categories" :pagination="false" row-key="id">
         <a-table-column title="Name" data-index="name" key="name" />
         <a-table-column title="Description" key="description">
