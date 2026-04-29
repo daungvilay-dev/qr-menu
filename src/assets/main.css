@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-family: theme(fontFamily.body);
+  background:
+    radial-gradient(circle at top, rgba(221, 201, 150, 0.22), transparent 34%),
+    linear-gradient(180deg, #fbf7ef 0%, #f5efe1 100%);
+  color: #2e2419;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+.price-chip {
+  @apply inline-flex items-center rounded-full bg-brand-100 px-3 py-1 text-sm font-semibold text-brand-800;
+}
+
+.section-title {
+  @apply font-display text-2xl font-semibold text-stone-900;
+}
