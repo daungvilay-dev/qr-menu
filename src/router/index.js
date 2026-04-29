@@ -7,6 +7,8 @@ const PublicLayout = () => import('@/layouts/PublicLayout.vue')
 const Login = () => import('@/pages/auth/Login.vue')
 const Register = () => import('@/pages/auth/Register.vue')
 const Dashboard = () => import('@/pages/admin/Dashboard.vue')
+const Roles = () => import('@/pages/admin/Roles.vue')
+const Users = () => import('@/pages/admin/Users.vue')
 const Restaurants = () => import('@/pages/admin/Restaurants.vue')
 const Branches = () => import('@/pages/admin/Branches.vue')
 const Categories = () => import('@/pages/admin/Categories.vue')
@@ -53,6 +55,18 @@ const routes = [
         name: 'dashboard',
         component: Dashboard,
         meta: { title: 'ໜ້າຫຼັກ' },
+      },
+      {
+        path: 'roles',
+        name: 'roles',
+        component: Roles,
+        meta: { title: 'ບົດບາດ' },
+      },
+      {
+        path: 'users',
+        name: 'users',
+        component: Users,
+        meta: { title: 'ຜູ້ໃຊ້' },
       },
       {
         path: 'restaurants',

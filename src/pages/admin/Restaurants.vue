@@ -22,7 +22,11 @@
             {{ record.phone || '—' }}
           </template>
         </a-table-column>
-        <a-table-column title="Owner ID" data-index="ownerId" key="ownerId" />
+        <a-table-column title="Owner" key="owner">
+          <template #default="{ record }">
+            {{ record.owner?.username || ownerName(record.ownerId) || record.ownerId || '—' }}
+          </template>
+        </a-table-column>
         <a-table-column title="Status" key="isActive">
           <template #default="{ record }">
             <a-tag :color="record.isActive ? 'green' : 'default'">
@@ -68,8 +72,12 @@
         <a-form-item label="Logo URL" class="md:col-span-2">
           <a-input v-model:value="formState.logo" />
         </a-form-item>
-        <a-form-item label="Owner ID" required>
-          <a-input-number v-model:value="formState.ownerId" class="w-full" :min="1" />
+        <a-form-item label="Owner" required>
+          <a-select v-model:value="formState.ownerId" placeholder="Select an owner">
+            <a-select-option v-for="user in systemStore.users" :key="user.id" :value="user.id">
+              {{ user.username }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
         <a-form-item class="flex items-end">
           <a-checkbox v-model:checked="formState.isActive">Active</a-checkbox>
@@ -86,8 +94,10 @@ import { notification } from 'ant-design-vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import AppLoading from '@/components/ui/AppLoading.vue'
 import { useRestaurantStore } from '@/store/restaurant'
+import { useSystemStore } from '@/store/system'
 
 const restaurantStore = useRestaurantStore()
+const systemStore = useSystemStore()
 const isModalOpen = ref(false)
 const editingRestaurantId = ref(null)
 
@@ -115,6 +125,10 @@ function openCreateModal() {
   editingRestaurantId.value = null
   resetForm()
   isModalOpen.value = true
+}
+
+function ownerName(ownerId) {
+  return systemStore.users.find((user) => user.id === ownerId)?.username || ''
 }
 
 async function openEditModal(id) {
@@ -157,7 +171,7 @@ async function removeRestaurant(id) {
   }
 }
 
-onMounted(() => {
-  restaurantStore.fetchRestaurants()
+onMounted(async () => {
+  await Promise.all([restaurantStore.fetchRestaurants(), systemStore.fetchUsers()])
 })
 </script>

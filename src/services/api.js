@@ -71,6 +71,45 @@ export const authApi = {
   },
 }
 
+export const rolesApi = {
+  list(params) {
+    return getCollection('/roles', { params })
+  },
+  info(id) {
+    return getResource(`/roles/${id}`)
+  },
+  create(payload) {
+    return postResource('/roles', payload)
+  },
+  update(id, payload) {
+    return putResource(`/roles/${id}`, payload)
+  },
+  remove(id) {
+    return deleteResource(`/roles/${id}`)
+  },
+}
+
+export const usersApi = {
+  list(params) {
+    return getCollection('/users', { params })
+  },
+  info(id) {
+    return getResource(`/users/${id}`)
+  },
+  create(payload) {
+    return postResource('/users', payload)
+  },
+  update(id, payload) {
+    return putResource(`/users/${id}`, payload)
+  },
+  remove(id) {
+    return deleteResource(`/users/${id}`)
+  },
+  changePassword(id, payload) {
+    return postResource(`/users/${id}/password`, payload)
+  },
+}
+
 export const categoriesApi = {
   list(params) {
     return getCollection('/basic/menu-categories', { params })

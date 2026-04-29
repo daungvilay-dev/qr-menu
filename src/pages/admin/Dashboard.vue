@@ -24,6 +24,18 @@ import AppPageHeader from '@/components/common/AppPageHeader.vue'
 
 const cards = [
   {
+    eyebrow: 'System',
+    title: 'Roles',
+    description: 'Create and maintain system roles used by staff and restaurant accounts.',
+    to: { name: 'roles' },
+  },
+  {
+    eyebrow: 'System',
+    title: 'Users',
+    description: 'Manage users, assign roles, and prepare accounts for restaurant ownership.',
+    to: { name: 'users' },
+  },
+  {
     eyebrow: 'Workspace',
     title: 'Restaurants',
     description: 'Manage restaurant records, owner assignments, contact details, and active status.',
