@@ -3,7 +3,7 @@
     <a-layout-sider
       breakpoint="lg"
       collapsed-width="0"
-      class="!bg-stone-950"
+      class="!bg-brand-950"
       width="250"
     >
       <div class="px-6 py-8 text-white">
@@ -23,7 +23,7 @@
       <a-layout-header class="flex items-center justify-between border-b border-stone-200 bg-white/70 px-4 backdrop-blur md:px-8">
         <div>
           <p class="text-xs uppercase tracking-[0.35em] text-brand-700">Restaurant Workspace</p>
-          <h1 class="text-xl font-semibold text-stone-900">{{ pageTitle }}</h1>
+          <h1 class="text-xl font-semibold text-red-950">{{ pageTitle }}</h1>
         </div>
         <div class="flex items-center gap-3">
           <span class="hidden text-sm text-stone-600 md:inline">{{ authStore.user?.username }}</span>

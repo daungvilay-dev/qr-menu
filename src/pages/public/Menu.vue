@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <section class="overflow-hidden rounded-[32px] border border-white/60 bg-white/80 shadow-card">
-      <div class="bg-stone-950 px-6 py-8 text-white">
+      <div class="bg-brand-950 px-6 py-8 text-white">
         <p class="text-xs uppercase tracking-[0.35em] text-brand-200">QR Menu</p>
         <div class="mt-3 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>

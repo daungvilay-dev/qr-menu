@@ -72,7 +72,7 @@
           </div>
         </div>
 
-        <div class="flex items-center justify-between rounded-[24px] bg-stone-950 px-5 py-4 text-white">
+        <div class="flex items-center justify-between rounded-[24px] bg-brand-950 px-5 py-4 text-white">
           <div>
             <p class="text-xs uppercase tracking-[0.3em] text-brand-200">Live total</p>
             <p class="text-sm text-stone-300">Base price + variant delta + addons</p>
