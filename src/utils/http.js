@@ -1,6 +1,16 @@
+const SUCCESS_CODE = 200
+
 export function unwrapResponse(payload) {
-  if (payload && typeof payload === 'object' && 'data' in payload && 'code' in payload) {
-    return payload.data
+  if (payload && typeof payload === 'object' && 'code' in payload) {
+    const code = Number(payload.code)
+
+    if (!Number.isNaN(code) && code !== SUCCESS_CODE) {
+      throw new Error(payload.message || 'Something went wrong')
+    }
+
+    if ('data' in payload) {
+      return payload.data
+    }
   }
 
   return payload
