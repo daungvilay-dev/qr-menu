@@ -3,9 +3,18 @@
     <AppPageHeader
       eyebrow="Admin"
       title="Restaurants"
-      description="Create and maintain restaurant records that power the QR menu workspace."
+      :description="
+        isSuperAdmin
+          ? 'Create and maintain restaurant records that power the QR menu workspace.'
+          : 'Browse restaurant information. Only super admins can create, edit, or delete restaurants.'
+      "
     >
-      <a-button type="primary" class="!bg-brand-500 !shadow-none hover:!bg-brand-600" @click="openCreateModal">
+      <a-button
+        v-if="isSuperAdmin"
+        type="primary"
+        class="!bg-brand-500 !shadow-none hover:!bg-brand-600"
+        @click="openCreateModal"
+      >
         Add restaurant
       </a-button>
     </AppPageHeader>
@@ -34,7 +43,7 @@
             </a-tag>
           </template>
         </a-table-column>
-        <a-table-column title="Actions" key="actions" align="right">
+        <a-table-column v-if="isSuperAdmin" title="Actions" key="actions" align="right">
           <template #default="{ record }">
             <div class="flex justify-end gap-2">
               <a-button size="small" @click="openEditModal(record.id)">Edit</a-button>
@@ -88,14 +97,16 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { notification } from 'ant-design-vue'
 
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import AppLoading from '@/components/ui/AppLoading.vue'
+import { useAuthStore } from '@/store/auth'
 import { useRestaurantStore } from '@/store/restaurant'
 import { useSystemStore } from '@/store/system'
 
+const authStore = useAuthStore()
 const restaurantStore = useRestaurantStore()
 const systemStore = useSystemStore()
 const isModalOpen = ref(false)
@@ -111,6 +122,25 @@ const formState = reactive({
   ownerId: null,
 })
 
+function parseAccessTokenRoles(token) {
+  if (!token) return []
+
+  try {
+    const [, payload] = token.split('.')
+    if (!payload) return []
+
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=')
+    const decoded = JSON.parse(window.atob(padded))
+
+    return Array.isArray(decoded?.roles) ? decoded.roles : []
+  } catch {
+    return []
+  }
+}
+
+const isSuperAdmin = computed(() => parseAccessTokenRoles(authStore.accessToken).includes('super_admin'))
+
 function resetForm() {
   formState.name = ''
   formState.slug = ''
@@ -122,6 +152,7 @@ function resetForm() {
 }
 
 function openCreateModal() {
+  if (!isSuperAdmin.value) return
   editingRestaurantId.value = null
   resetForm()
   isModalOpen.value = true
@@ -132,6 +163,8 @@ function ownerName(ownerId) {
 }
 
 async function openEditModal(id) {
+  if (!isSuperAdmin.value) return
+
   try {
     const restaurant = await restaurantStore.fetchRestaurant(id)
     editingRestaurantId.value = id
@@ -153,6 +186,8 @@ function closeModal() {
 }
 
 async function submitRestaurant() {
+  if (!isSuperAdmin.value) return
+
   try {
     await restaurantStore.saveRestaurant({ ...formState }, editingRestaurantId.value)
     notification.success({ message: 'Restaurant saved' })
@@ -163,6 +198,8 @@ async function submitRestaurant() {
 }
 
 async function removeRestaurant(id) {
+  if (!isSuperAdmin.value) return
+
   try {
     await restaurantStore.deleteRestaurant(id)
     notification.success({ message: 'Restaurant deleted' })
@@ -172,6 +209,12 @@ async function removeRestaurant(id) {
 }
 
 onMounted(async () => {
-  await Promise.all([restaurantStore.fetchRestaurants(), systemStore.fetchUsers()])
+  const tasks = [restaurantStore.fetchRestaurants()]
+
+  if (isSuperAdmin.value) {
+    tasks.push(systemStore.fetchUsers())
+  }
+
+  await Promise.all(tasks)
 })
 </script>

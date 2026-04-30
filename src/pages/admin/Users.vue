@@ -3,17 +3,26 @@
     <AppPageHeader
       eyebrow="System"
       title="Users"
-      description="Manage system users, assign roles, and control which accounts can own restaurants."
+      :description="
+        isSuperAdmin
+          ? 'Manage system users, assign roles, and control which accounts can own restaurants.'
+          : 'Update your owner account information and password.'
+      "
     >
-      <a-button type="primary" class="!bg-brand-500 !shadow-none hover:!bg-brand-600" @click="openCreateModal">
+      <a-button
+        v-if="isSuperAdmin"
+        type="primary"
+        class="!bg-brand-500 !shadow-none hover:!bg-brand-600"
+        @click="openCreateModal"
+      >
         Add user
       </a-button>
     </AppPageHeader>
 
-    <AppLoading v-if="systemStore.isLoading('users') || systemStore.isLoading('roles')" />
+    <AppLoading v-if="systemStore.isLoading('users') || (isSuperAdmin && systemStore.isLoading('roles'))" />
 
     <div v-else class="rounded-[28px] border border-navy-500/50 bg-navy-700/50 p-4 shadow-card backdrop-blur">
-      <a-table :data-source="systemStore.users" :pagination="false" row-key="id" :scroll="{ x: 1080 }">
+      <a-table :data-source="visibleUsers" :pagination="false" row-key="id" :scroll="{ x: 1080 }">
         <a-table-column title="Username" data-index="username" key="username" />
         <a-table-column title="Nickname" key="nickname">
           <template #default="{ record }">
@@ -51,7 +60,7 @@
             <div class="flex justify-end gap-2">
               <a-button size="small" @click="openEditModal(record)">Edit</a-button>
               <a-button size="small" @click="openPasswordModal(record)">Password</a-button>
-              <a-popconfirm title="Delete this user?" @confirm="removeUser(record.id)">
+              <a-popconfirm v-if="isSuperAdmin" title="Delete this user?" @confirm="removeUser(record.id)">
                 <a-button danger size="small">Delete</a-button>
               </a-popconfirm>
             </div>
@@ -70,7 +79,7 @@
     >
       <a-form layout="vertical" :model="formState" class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
         <a-form-item label="Username" required>
-          <a-input v-model:value="formState.username" :disabled="Boolean(editingUser)" />
+          <a-input v-model:value="formState.username" :disabled="Boolean(editingUser) || !isSuperAdmin" />
         </a-form-item>
         <a-form-item label="Password" :required="!editingUser">
           <a-input-password v-model:value="formState.password" placeholder="Leave blank to keep current password" />
@@ -85,12 +94,12 @@
           <a-input v-model:value="formState.phone" />
         </a-form-item>
         <a-form-item label="Status">
-          <a-select v-model:value="formState.status">
+          <a-select v-model:value="formState.status" :disabled="!isSuperAdmin">
             <a-select-option :value="1">Enabled</a-select-option>
             <a-select-option :value="0">Disabled</a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item label="Roles" required class="md:col-span-2">
+        <a-form-item v-if="isSuperAdmin" label="Roles" required class="md:col-span-2">
           <a-select v-model:value="formState.roleIds" mode="multiple" placeholder="Select one or more roles">
             <a-select-option v-for="role in systemStore.roles" :key="role.id" :value="role.id">
               {{ role.name }}
@@ -117,18 +126,26 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { notification } from 'ant-design-vue'
 
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import AppLoading from '@/components/ui/AppLoading.vue'
+import { useAuthStore } from '@/store/auth'
 import { useSystemStore } from '@/store/system'
 
+const authStore = useAuthStore()
 const systemStore = useSystemStore()
 const isModalOpen = ref(false)
 const isPasswordModalOpen = ref(false)
 const editingUser = ref(null)
 const passwordUser = ref(null)
+const isSuperAdmin = computed(() => authStore.isSuperAdmin)
+const visibleUsers = computed(() =>
+  isSuperAdmin.value
+    ? systemStore.users
+    : systemStore.users.filter((user) => user.id === authStore.userId)
+)
 
 const formState = reactive({
   username: '',
@@ -157,12 +174,15 @@ function resetForm() {
 }
 
 function openCreateModal() {
+  if (!isSuperAdmin.value) return
   editingUser.value = null
   resetForm()
   isModalOpen.value = true
 }
 
 function openEditModal(user) {
+  if (!isSuperAdmin.value && user.id !== authStore.userId) return
+
   editingUser.value = user
   Object.assign(formState, {
     username: user.username || '',
@@ -183,13 +203,16 @@ function closeModal() {
 async function submitUser() {
   try {
     const payload = {
-      username: formState.username,
-      roleIds: [...formState.roleIds],
       nickname: formState.nickname || undefined,
       email: formState.email || undefined,
       phone: formState.phone || undefined,
-      status: formState.status,
       ...(formState.password ? { password: formState.password } : null),
+    }
+
+    if (isSuperAdmin.value) {
+      payload.username = formState.username
+      payload.roleIds = [...formState.roleIds]
+      payload.status = formState.status
     }
 
     await systemStore.saveUser(payload, editingUser.value?.id)
@@ -201,6 +224,8 @@ async function submitUser() {
 }
 
 function openPasswordModal(user) {
+  if (!isSuperAdmin.value && user.id !== authStore.userId) return
+
   passwordUser.value = user
   passwordFormState.password = ''
   isPasswordModalOpen.value = true
@@ -221,6 +246,8 @@ async function submitPasswordChange() {
 }
 
 async function removeUser(id) {
+  if (!isSuperAdmin.value) return
+
   try {
     await systemStore.deleteUser(id)
     notification.success({ message: 'User deleted' })
@@ -230,6 +257,12 @@ async function removeUser(id) {
 }
 
 onMounted(async () => {
-  await Promise.all([systemStore.fetchRoles(), systemStore.fetchUsers()])
+  const tasks = [systemStore.fetchUsers()]
+
+  if (isSuperAdmin.value) {
+    tasks.push(systemStore.fetchRoles())
+  }
+
+  await Promise.all(tasks)
 })
 </script>

@@ -67,7 +67,7 @@ function menuItem(key, text, dotClass) {
   }
 }
 
-const menuItems = [
+const allMenuItems = [
   {
     type: 'group',
     label: groupLabel('Overview', 'text-[11px] font-semibold uppercase tracking-[0.32em] text-sky-300'),
@@ -104,9 +104,19 @@ const menuItems = [
   },
 ]
 
+const menuItems = computed(() =>
+  allMenuItems.filter((group) => {
+    return group.children?.some((item) => {
+      if (item.key === 'roles') return authStore.isSuperAdmin
+      if (item.key === 'users') return authStore.isSuperAdmin || authStore.isRestaurantOwner
+      return true
+    })
+  })
+)
+
 const selectedKey = computed(() => route.name)
 const pageTitle = computed(() => {
-  for (const group of menuItems) {
+  for (const group of allMenuItems) {
     const match = group.children?.find((item) => item.key === route.name)
     if (match) return match.title
   }

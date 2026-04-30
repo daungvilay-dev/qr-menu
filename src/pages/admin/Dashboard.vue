@@ -20,9 +20,14 @@
 </template>
 
 <script setup>
-import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import { computed } from 'vue'
 
-const cards = [
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import { useAuthStore } from '@/store/auth'
+
+const authStore = useAuthStore()
+
+const allCards = [
   {
     eyebrow: 'System',
     title: 'Roles',
@@ -66,4 +71,12 @@ const cards = [
     to: { name: 'qr-codes' },
   },
 ]
+
+const cards = computed(() =>
+  allCards.filter((card) => {
+    if (card.to.name === 'roles') return authStore.isSuperAdmin
+    if (card.to.name === 'users') return authStore.isSuperAdmin || authStore.isRestaurantOwner
+    return true
+  })
+)
 </script>

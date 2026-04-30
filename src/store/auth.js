@@ -11,7 +11,27 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const initialized = ref(false)
 
+  const tokenPayload = computed(() => {
+    if (!accessToken.value) return null
+
+    try {
+      const [, payload] = accessToken.value.split('.')
+      if (!payload) return null
+
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+      const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=')
+      return JSON.parse(window.atob(padded))
+    } catch {
+      return null
+    }
+  })
   const isAuthenticated = computed(() => Boolean(accessToken.value))
+  const roleValues = computed(() => {
+    return Array.isArray(tokenPayload.value?.roles) ? tokenPayload.value.roles : []
+  })
+  const userId = computed(() => tokenPayload.value?.uid ?? null)
+  const isSuperAdmin = computed(() => roleValues.value.includes('super_admin'))
+  const isRestaurantOwner = computed(() => roleValues.value.includes('restaurant_owner'))
 
   function hydrate() {
     if (initialized.value) return
@@ -94,6 +114,10 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     initialized,
     isAuthenticated,
+    userId,
+    roleValues,
+    isSuperAdmin,
+    isRestaurantOwner,
     hydrate,
     login,
     logout,

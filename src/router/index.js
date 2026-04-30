@@ -124,6 +124,14 @@ router.beforeEach((to) => {
     return '/admin'
   }
 
+  if (String(to.name) === 'roles' && !authStore.isSuperAdmin) {
+    return '/admin'
+  }
+
+  if (String(to.name) === 'users' && !(authStore.isSuperAdmin || authStore.isRestaurantOwner)) {
+    return '/admin'
+  }
+
   return true
 })
 
