@@ -14,6 +14,24 @@
 
     <div v-else class="rounded-[28px] border border-navy-500/50 bg-navy-700/50 p-4 shadow-card backdrop-blur">
       <a-table :data-source="menuStore.menuItems" :pagination="false" row-key="id" :scroll="{ x: 900 }">
+        <a-table-column title="Image" key="img" width="110">
+          <template #default="{ record }">
+            <div class="flex items-center">
+              <img
+                v-if="record.img"
+                :src="buildAssetUrl(record.img)"
+                :alt="record.name"
+                class="h-14 w-14 rounded-2xl object-cover ring-1 ring-navy-400/60"
+              />
+              <div
+                v-else
+                class="flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-navy-500/60 bg-navy-800/70 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500"
+              >
+                No image
+              </div>
+            </div>
+          </template>
+        </a-table-column>
         <a-table-column title="Name" data-index="name" key="name" />
         <a-table-column title="Category" key="category">
           <template #default="{ record }">
@@ -35,7 +53,7 @@
         <a-table-column title="Actions" key="actions" align="right">
           <template #default="{ record }">
             <div class="flex justify-end gap-2">
-              <a-button size="small" @click="openEditModal(record)">Edit</a-button>
+              <a-button size="small" @click="openEditModal(record.id)">Edit</a-button>
               <a-button size="small" @click="openOptionsDrawer(record)">Options</a-button>
               <a-popconfirm title="Delete this menu item?" @confirm="removeMenuItem(record.id)">
                 <a-button danger size="small">Delete</a-button>
@@ -54,40 +72,15 @@
       @cancel="closeMenuModal"
       @ok="submitMenuItem"
     >
-      <a-form layout="vertical" :model="menuFormState" class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-        <a-form-item label="Category" required>
-          <a-select v-model:value="menuFormState.categoryId" placeholder="Select a category">
-            <a-select-option v-for="category in menuStore.categories" :key="category.id" :value="category.id">
-              {{ category.name }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="Name" required>
-          <a-input v-model:value="menuFormState.name" />
-        </a-form-item>
-        <a-form-item label="Image URL">
-          <a-input v-model:value="menuFormState.img" />
-        </a-form-item>
-        <a-form-item label="Base price">
-          <a-input-number v-model:value="menuFormState.price" class="w-full" :min="0" />
-        </a-form-item>
-        <a-form-item label="Currency">
-          <a-input v-model:value="menuFormState.currency" />
-        </a-form-item>
-        <a-form-item label="Spicy level">
-          <a-input-number v-model:value="menuFormState.spicyLevel" class="w-full" :min="0" :max="3" />
-        </a-form-item>
-        <a-form-item label="Description" class="md:col-span-2">
-          <a-textarea v-model:value="menuFormState.description" :rows="4" />
-        </a-form-item>
-        <a-form-item label="Sort order">
-          <a-input-number v-model:value="menuFormState.sortOrder" class="w-full" :min="0" />
-        </a-form-item>
-        <div class="flex items-center gap-4 pt-8">
-          <a-checkbox v-model:checked="menuFormState.isAvailable">Available</a-checkbox>
-          <a-checkbox v-model:checked="menuFormState.isVeg">Vegetarian</a-checkbox>
-        </div>
-      </a-form>
+      <MenuForm
+        :form="menuFormState"
+        :categories="menuStore.categories"
+        :preview-url="menuImagePreviewUrl"
+        :file-name="menuImageFileName"
+        :error-message="menuSubmitError"
+        @file-change="handleMenuImageChange"
+        @file-clear="clearMenuImage"
+      />
     </a-modal>
 
     <a-drawer
@@ -252,10 +245,13 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { notification } from 'ant-design-vue'
 
+import MenuForm from '@/components/forms/MenuForm.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import AppLoading from '@/components/ui/AppLoading.vue'
+import { buildAssetUrl } from '@/services/api'
 import { useMenuStore } from '@/store/menu'
 import { formatCurrency } from '@/utils/currency'
+import { createObjectPreviewUrl, revokeObjectPreviewUrl } from '@/utils/filePreview'
 
 const menuStore = useMenuStore()
 
@@ -268,6 +264,9 @@ const editingVariant = ref(null)
 const isAddonModalOpen = ref(false)
 const editingAddon = ref(null)
 const selectedAddonLinkIds = ref([])
+const menuImageFile = ref(null)
+const localMenuImagePreviewUrl = ref('')
+const menuSubmitError = ref('')
 
 const menuFormState = reactive({
   categoryId: undefined,
@@ -305,12 +304,16 @@ const currentVariants = computed(() => {
 const linkedAddonObjects = computed(() =>
   menuStore.addons.filter((addon) => selectedAddonLinkIds.value.includes(addon.id))
 )
+const menuImagePreviewUrl = computed(() => localMenuImagePreviewUrl.value || buildAssetUrl(menuFormState.img))
+const menuImageFileName = computed(() => menuImageFile.value?.name || '')
 
 function categoryName(categoryId) {
   return menuStore.categories.find((category) => category.id === categoryId)?.name || '—'
 }
 
 function resetMenuForm() {
+  clearMenuImage()
+  menuSubmitError.value = ''
   Object.assign(menuFormState, {
     categoryId: undefined,
     name: '',
@@ -323,6 +326,18 @@ function resetMenuForm() {
     isVeg: false,
     sortOrder: 0,
   })
+}
+
+function handleMenuImageChange(file) {
+  revokeObjectPreviewUrl(localMenuImagePreviewUrl.value)
+  menuImageFile.value = file
+  localMenuImagePreviewUrl.value = file ? createObjectPreviewUrl(file) : ''
+}
+
+function clearMenuImage() {
+  revokeObjectPreviewUrl(localMenuImagePreviewUrl.value)
+  menuImageFile.value = null
+  localMenuImagePreviewUrl.value = ''
 }
 
 function resetVariantForm() {
@@ -350,33 +365,51 @@ function openCreateModal() {
   isMenuModalOpen.value = true
 }
 
-function openEditModal(item) {
-  editingMenu.value = item
-  Object.assign(menuFormState, {
-    categoryId: item.category?.id || item.categoryId,
-    name: item.name,
-    img: item.img || '',
-    description: item.description || '',
-    price: item.price || 0,
-    currency: item.currency || 'LAK',
-    isAvailable: item.isAvailable ?? true,
-    spicyLevel: item.spicyLevel || 0,
-    isVeg: item.isVeg ?? false,
-    sortOrder: item.sortOrder || 0,
-  })
-  isMenuModalOpen.value = true
+async function openEditModal(id) {
+  clearMenuImage()
+  menuSubmitError.value = ''
+
+  try {
+    const item = await menuStore.fetchMenuItem(id)
+    editingMenu.value = item
+    Object.assign(menuFormState, {
+      categoryId: item.category?.id || item.categoryId,
+      name: item.name,
+      img: item.img || '',
+      description: item.description || '',
+      price: item.price || 0,
+      currency: item.currency || 'LAK',
+      isAvailable: item.isAvailable ?? true,
+      spicyLevel: item.spicyLevel || 0,
+      isVeg: item.isVeg ?? false,
+      sortOrder: item.sortOrder || 0,
+    })
+    isMenuModalOpen.value = true
+  } catch (error) {
+    menuSubmitError.value = error.message
+    notification.error({ message: error.message })
+  }
 }
 
 function closeMenuModal() {
+  menuSubmitError.value = ''
   isMenuModalOpen.value = false
 }
 
 async function submitMenuItem() {
+  menuSubmitError.value = ''
+
+  if (!menuFormState.categoryId || !menuFormState.name || menuFormState.price === null || menuFormState.price === undefined) {
+    menuSubmitError.value = 'Category, name, and price are required.'
+    return
+  }
+
   try {
-    await menuStore.saveMenuItem({ ...menuFormState }, editingMenu.value?.id)
+    await menuStore.saveMenuItem({ ...menuFormState, file: menuImageFile.value || undefined }, editingMenu.value?.id)
     notification.success({ message: 'Menu item saved' })
     closeMenuModal()
   } catch (error) {
+    menuSubmitError.value = error.message
     notification.error({ message: error.message })
   }
 }

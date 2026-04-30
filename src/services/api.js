@@ -13,6 +13,65 @@ function resolveApiBaseUrl() {
   return configuredBaseUrl.replace(/\/+$/, '')
 }
 
+function resolveAssetBaseUrl() {
+  const baseUrl = resolveApiBaseUrl()
+
+  if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
+    return baseUrl.replace(/\/api$/, '')
+  }
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin
+  }
+
+  return ''
+}
+
+function appendMultipartValue(formData, key, value) {
+  if (value === undefined || value === null || value === '') return
+
+  if (value instanceof File || value instanceof Blob) {
+    formData.append(key, value)
+    return
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => appendMultipartValue(formData, key, item))
+    return
+  }
+
+  if (typeof value === 'boolean' || typeof value === 'number') {
+    formData.append(key, String(value))
+    return
+  }
+
+  formData.append(key, value)
+}
+
+export function toFormData(payload = {}, fileFieldName = 'file') {
+  const formData = new FormData()
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (key === fileFieldName) return
+    appendMultipartValue(formData, key, value)
+  })
+
+  const file = payload?.[fileFieldName]
+  if (file) {
+    formData.append(fileFieldName, file)
+  }
+
+  return formData
+}
+
+export const createMultipartFormData = toFormData
+
+export function buildAssetUrl(path) {
+  if (!path) return ''
+  if (/^https?:\/\//i.test(path)) return path
+  return `${resolveAssetBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`
+}
+
 const api = axios.create({
   baseURL: resolveApiBaseUrl(),
   timeout: 15000,
@@ -59,6 +118,16 @@ async function deleteResource(url, config) {
   return unwrapResponse(response.data)
 }
 
+async function postMultipartResource(url, payload, fileFieldName = 'file', config) {
+  const response = await api.post(url, toFormData(payload, fileFieldName), config)
+  return unwrapResponse(response.data)
+}
+
+async function putMultipartResource(url, payload, fileFieldName = 'file', config) {
+  const response = await api.put(url, toFormData(payload, fileFieldName), config)
+  return unwrapResponse(response.data)
+}
+
 export const authApi = {
   login(payload) {
     return postResource('/auth/login', payload)
@@ -67,7 +136,13 @@ export const authApi = {
     return postResource('/auth/register', payload)
   },
   registerRestaurant(payload) {
-    return postResource('/auth/register/restaurant', payload)
+    return postMultipartResource('/auth/register/restaurant', payload)
+  },
+}
+
+export const accountApi = {
+  registerRestaurant(payload) {
+    return postMultipartResource('/account/restaurant/register', payload)
   },
 }
 
@@ -133,10 +208,10 @@ export const restaurantsApi = {
     return getResource(`/basic/restaurants/${id}`)
   },
   create(payload) {
-    return postResource('/basic/restaurants', payload)
+    return postMultipartResource('/basic/restaurants', payload)
   },
   update(id, payload) {
-    return putResource(`/basic/restaurants/${id}`, payload)
+    return putMultipartResource(`/basic/restaurants/${id}`, payload)
   },
   remove(id) {
     return deleteResource(`/basic/restaurants/${id}`)
@@ -165,16 +240,39 @@ export const menusApi = {
   list(params) {
     return getCollection('/basic/menus', { params })
   },
+  info(id) {
+    return getResource(`/basic/menus/${id}`)
+  },
   create(payload) {
-    return postResource('/basic/menus', payload)
+    return postMultipartResource('/basic/menus', payload)
   },
   update(id, payload) {
-    return putResource(`/basic/menus/${id}`, payload)
+    return putMultipartResource(`/basic/menus/${id}`, payload)
   },
   remove(id) {
     return deleteResource(`/basic/menus/${id}`)
   },
 }
+
+export const uploadApi = {
+  createMenu(payload) {
+    return menusApi.create(payload)
+  },
+  updateMenu(id, payload) {
+    return menusApi.update(id, payload)
+  },
+  createRestaurant(payload) {
+    return restaurantsApi.create(payload)
+  },
+  updateRestaurant(id, payload) {
+    return restaurantsApi.update(id, payload)
+  },
+}
+
+export const createMenu = (payload) => uploadApi.createMenu(payload)
+export const updateMenu = (id, payload) => uploadApi.updateMenu(id, payload)
+export const createRestaurant = (payload) => uploadApi.createRestaurant(payload)
+export const updateRestaurant = (id, payload) => uploadApi.updateRestaurant(id, payload)
 
 export const variantsApi = {
   list(params) {

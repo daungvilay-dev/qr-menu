@@ -106,6 +106,15 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
+  async function fetchMenuItem(id) {
+    setLoading('menu', true)
+    try {
+      return await menusApi.info(id)
+    } finally {
+      setLoading('menu', false)
+    }
+  }
+
   async function saveMenuItem(payload, id) {
     if (id) {
       await menusApi.update(id, payload)
@@ -315,6 +324,7 @@ export const useMenuStore = defineStore('menu', () => {
     saveCategory,
     deleteCategory,
     fetchMenuItems,
+    fetchMenuItem,
     saveMenuItem,
     deleteMenuItem,
     fetchVariants,

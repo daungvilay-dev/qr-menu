@@ -48,9 +48,20 @@
           <a-input v-model:value="formState.phone" size="large" />
         </a-form-item>
 
-        <a-form-item label="Logo URL" name="logoUrl">
-          <a-input v-model:value="formState.logoUrl" size="large" />
-        </a-form-item>
+        <div class="md:col-span-2">
+          <ImageUploadPreview
+            input-id="restaurant-register-logo-upload"
+            button-label="Choose restaurant logo"
+            empty-title="No restaurant logo selected"
+            empty-description="Upload a logo before creating the owner account."
+            :preview-url="logoPreviewUrl"
+            :file-name="logoFile?.name || ''"
+            :has-preview="Boolean(logoPreviewUrl)"
+            alt="Restaurant registration logo preview"
+            @change="handleLogoChange"
+            @clear="clearLogo"
+          />
+        </div>
 
         <div class="md:col-span-2">
           <a-button type="primary" html-type="submit" size="large" class="mt-2 !bg-brand-500 !shadow-none hover:!bg-brand-600" :loading="authStore.loading">
@@ -66,9 +77,11 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import ImageUploadPreview from '@/components/forms/ImageUploadPreview.vue'
+import { createObjectPreviewUrl, revokeObjectPreviewUrl } from '@/utils/filePreview'
 import { useAuthStore } from '@/store/auth'
 
 const router = useRouter()
@@ -84,6 +97,9 @@ const formState = reactive({
   phone: '',
   logoUrl: '',
 })
+const logoFile = ref(null)
+const localLogoPreviewUrl = ref('')
+const logoPreviewUrl = computed(() => localLogoPreviewUrl.value)
 
 const requiredRule = [{ required: true, message: 'This field is required' }]
 const passwordRules = [
@@ -94,12 +110,27 @@ const passwordRules = [
 const errorMessage = ref('')
 const successMessage = ref('')
 
+function handleLogoChange(file) {
+  revokeObjectPreviewUrl(localLogoPreviewUrl.value)
+  logoFile.value = file
+  localLogoPreviewUrl.value = file ? createObjectPreviewUrl(file) : ''
+}
+
+function clearLogo() {
+  revokeObjectPreviewUrl(localLogoPreviewUrl.value)
+  logoFile.value = null
+  localLogoPreviewUrl.value = ''
+}
+
 async function submit() {
   errorMessage.value = ''
   successMessage.value = ''
 
   try {
-    await authStore.registerRestaurantOwner(formState)
+    await authStore.registerRestaurantOwner({
+      ...formState,
+      file: logoFile.value || undefined,
+    })
     successMessage.value = 'Account created. Sign in to continue.'
     setTimeout(() => router.push({ name: 'login' }), 1200)
   } catch (error) {

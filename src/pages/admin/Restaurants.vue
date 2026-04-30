@@ -65,33 +65,17 @@
       @cancel="closeModal"
       @ok="submitRestaurant"
     >
-      <a-form layout="vertical" :model="formState" class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-        <a-form-item label="Name" required>
-          <a-input v-model:value="formState.name" />
-        </a-form-item>
-        <a-form-item label="Slug" required>
-          <a-input v-model:value="formState.slug" placeholder="my-restaurant" />
-        </a-form-item>
-        <a-form-item label="Contact Email" required>
-          <a-input v-model:value="formState.contactEmail" />
-        </a-form-item>
-        <a-form-item label="Phone">
-          <a-input v-model:value="formState.phone" />
-        </a-form-item>
-        <a-form-item label="Logo URL" class="md:col-span-2">
-          <a-input v-model:value="formState.logo" />
-        </a-form-item>
-        <a-form-item label="Owner" required>
-          <a-select v-model:value="formState.ownerId" placeholder="Select an owner">
-            <a-select-option v-for="user in systemStore.users" :key="user.id" :value="user.id">
-              {{ user.username }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item class="flex items-end">
-          <a-checkbox v-model:checked="formState.isActive">Active</a-checkbox>
-        </a-form-item>
-      </a-form>
+      <RestaurantForm
+        :form="formState"
+        :users="systemStore.users"
+        :preview-url="logoPreviewUrl"
+        :file-name="logoFileName"
+        :error-message="submitError"
+        :show-owner-field="true"
+        :show-status-field="true"
+        @file-change="handleLogoFileChange"
+        @file-clear="clearLogoFile"
+      />
     </a-modal>
   </div>
 </template>
@@ -100,17 +84,23 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { notification } from 'ant-design-vue'
 
+import RestaurantForm from '@/components/forms/RestaurantForm.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import AppLoading from '@/components/ui/AppLoading.vue'
+import { buildAssetUrl } from '@/services/api'
 import { useAuthStore } from '@/store/auth'
 import { useRestaurantStore } from '@/store/restaurant'
 import { useSystemStore } from '@/store/system'
+import { createObjectPreviewUrl, revokeObjectPreviewUrl } from '@/utils/filePreview'
 
 const authStore = useAuthStore()
 const restaurantStore = useRestaurantStore()
 const systemStore = useSystemStore()
 const isModalOpen = ref(false)
 const editingRestaurantId = ref(null)
+const logoFile = ref(null)
+const localLogoPreviewUrl = ref('')
+const submitError = ref('')
 
 const formState = reactive({
   name: '',
@@ -121,27 +111,13 @@ const formState = reactive({
   isActive: true,
   ownerId: null,
 })
-
-function parseAccessTokenRoles(token) {
-  if (!token) return []
-
-  try {
-    const [, payload] = token.split('.')
-    if (!payload) return []
-
-    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
-    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=')
-    const decoded = JSON.parse(window.atob(padded))
-
-    return Array.isArray(decoded?.roles) ? decoded.roles : []
-  } catch {
-    return []
-  }
-}
-
-const isSuperAdmin = computed(() => parseAccessTokenRoles(authStore.accessToken).includes('super_admin'))
+const isSuperAdmin = computed(() => authStore.isSuperAdmin)
+const logoPreviewUrl = computed(() => localLogoPreviewUrl.value || buildAssetUrl(formState.logo))
+const logoFileName = computed(() => logoFile.value?.name || '')
 
 function resetForm() {
+  clearLogoFile()
+  submitError.value = ''
   formState.name = ''
   formState.slug = ''
   formState.contactEmail = ''
@@ -149,6 +125,18 @@ function resetForm() {
   formState.logo = ''
   formState.isActive = true
   formState.ownerId = null
+}
+
+function handleLogoFileChange(file) {
+  revokeObjectPreviewUrl(localLogoPreviewUrl.value)
+  logoFile.value = file
+  localLogoPreviewUrl.value = file ? createObjectPreviewUrl(file) : ''
+}
+
+function clearLogoFile() {
+  revokeObjectPreviewUrl(localLogoPreviewUrl.value)
+  logoFile.value = null
+  localLogoPreviewUrl.value = ''
 }
 
 function openCreateModal() {
@@ -166,6 +154,8 @@ async function openEditModal(id) {
   if (!isSuperAdmin.value) return
 
   try {
+    clearLogoFile()
+    submitError.value = ''
     const restaurant = await restaurantStore.fetchRestaurant(id)
     editingRestaurantId.value = id
     formState.name = restaurant.name || ''
@@ -182,17 +172,26 @@ async function openEditModal(id) {
 }
 
 function closeModal() {
+  submitError.value = ''
   isModalOpen.value = false
 }
 
 async function submitRestaurant() {
   if (!isSuperAdmin.value) return
 
+  submitError.value = ''
+
+  if (!formState.name || !formState.slug || !formState.contactEmail || !formState.ownerId) {
+    submitError.value = 'Name, slug, contact email, and owner are required.'
+    return
+  }
+
   try {
-    await restaurantStore.saveRestaurant({ ...formState }, editingRestaurantId.value)
+    await restaurantStore.saveRestaurant({ ...formState, file: logoFile.value || undefined }, editingRestaurantId.value)
     notification.success({ message: 'Restaurant saved' })
     closeModal()
   } catch (error) {
+    submitError.value = error.message
     notification.error({ message: error.message })
   }
 }

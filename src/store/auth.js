@@ -92,6 +92,7 @@ export const useAuthStore = defineStore('auth', () => {
         contactEmail: payload.contactEmail,
         phone: payload.phone,
         logoUrl: payload.logoUrl,
+        file: payload.file,
       })
     } finally {
       loading.value = false
