@@ -36,17 +36,10 @@
       </a-form-item>
 
       <a-form-item label="Image" class="md:col-span-2">
-        <ImageUploadPreview
-          input-id="menu-image-upload"
-          button-label="Choose menu image"
-          empty-title="No menu image selected"
-          empty-description="Upload a dish photo for the public menu."
-          :preview-url="previewUrl"
-          :file-name="fileName"
-          :has-preview="Boolean(previewUrl)"
+        <ImageInput
+          :existing-url="existingImageUrl"
           alt="Menu image preview"
-          @change="$emit('file-change', $event)"
-          @clear="$emit('file-clear')"
+          @change="$emit('image-change', $event)"
         />
       </a-form-item>
 
@@ -59,7 +52,7 @@
 </template>
 
 <script setup>
-import ImageUploadPreview from '@/components/forms/ImageUploadPreview.vue'
+import ImageInput from '@/components/forms/ImageInput.vue'
 
 defineProps({
   categories: {
@@ -70,7 +63,7 @@ defineProps({
     type: String,
     default: '',
   },
-  fileName: {
+  existingImageUrl: {
     type: String,
     default: '',
   },
@@ -78,11 +71,7 @@ defineProps({
     type: Object,
     required: true,
   },
-  previewUrl: {
-    type: String,
-    default: '',
-  },
 })
 
-defineEmits(['file-change', 'file-clear'])
+defineEmits(['image-change'])
 </script>

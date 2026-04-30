@@ -32,17 +32,10 @@
       </a-form-item>
 
       <a-form-item class="md:col-span-2" label="Logo">
-        <ImageUploadPreview
-          input-id="restaurant-logo-upload"
-          button-label="Choose restaurant logo"
-          empty-title="No restaurant logo selected"
-          empty-description="Upload a logo or storefront image."
-          :preview-url="previewUrl"
-          :file-name="fileName"
-          :has-preview="Boolean(previewUrl)"
+        <ImageInput
+          :existing-url="existingImageUrl"
           alt="Restaurant logo preview"
-          @change="$emit('file-change', $event)"
-          @clear="$emit('file-clear')"
+          @change="$emit('image-change', $event)"
         />
       </a-form-item>
     </a-form>
@@ -50,24 +43,20 @@
 </template>
 
 <script setup>
-import ImageUploadPreview from '@/components/forms/ImageUploadPreview.vue'
+import ImageInput from '@/components/forms/ImageInput.vue'
 
 defineProps({
   errorMessage: {
     type: String,
     default: '',
   },
-  fileName: {
+  existingImageUrl: {
     type: String,
     default: '',
   },
   form: {
     type: Object,
     required: true,
-  },
-  previewUrl: {
-    type: String,
-    default: '',
   },
   showOwnerField: {
     type: Boolean,
@@ -83,5 +72,5 @@ defineProps({
   },
 })
 
-defineEmits(['file-change', 'file-clear'])
+defineEmits(['image-change'])
 </script>

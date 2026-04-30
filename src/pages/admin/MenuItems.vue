@@ -73,13 +73,12 @@
       @ok="submitMenuItem"
     >
       <MenuForm
+        :key="menuFormKey"
         :form="menuFormState"
         :categories="menuStore.categories"
-        :preview-url="menuImagePreviewUrl"
-        :file-name="menuImageFileName"
+        :existing-image-url="menuExistingImageUrl"
         :error-message="menuSubmitError"
-        @file-change="handleMenuImageChange"
-        @file-clear="clearMenuImage"
+        @image-change="menuImage = $event"
       />
     </a-modal>
 
@@ -251,7 +250,6 @@ import AppLoading from '@/components/ui/AppLoading.vue'
 import { buildAssetUrl } from '@/services/api'
 import { useMenuStore } from '@/store/menu'
 import { formatCurrency } from '@/utils/currency'
-import { createObjectPreviewUrl, revokeObjectPreviewUrl } from '@/utils/filePreview'
 
 const menuStore = useMenuStore()
 
@@ -264,8 +262,9 @@ const editingVariant = ref(null)
 const isAddonModalOpen = ref(false)
 const editingAddon = ref(null)
 const selectedAddonLinkIds = ref([])
-const menuImageFile = ref(null)
-const localMenuImagePreviewUrl = ref('')
+const menuImage = ref({ file: null, url: '' })
+const menuExistingImageUrl = ref('')
+const menuFormKey = ref(0)
 const menuSubmitError = ref('')
 
 const menuFormState = reactive({
@@ -304,20 +303,18 @@ const currentVariants = computed(() => {
 const linkedAddonObjects = computed(() =>
   menuStore.addons.filter((addon) => selectedAddonLinkIds.value.includes(addon.id))
 )
-const menuImagePreviewUrl = computed(() => localMenuImagePreviewUrl.value || buildAssetUrl(menuFormState.img))
-const menuImageFileName = computed(() => menuImageFile.value?.name || '')
-
 function categoryName(categoryId) {
   return menuStore.categories.find((category) => category.id === categoryId)?.name || '—'
 }
 
 function resetMenuForm() {
-  clearMenuImage()
   menuSubmitError.value = ''
+  menuExistingImageUrl.value = ''
+  menuImage.value = { file: null, url: '' }
+  menuFormKey.value++
   Object.assign(menuFormState, {
     categoryId: undefined,
     name: '',
-    img: '',
     description: '',
     price: 0,
     currency: 'LAK',
@@ -326,18 +323,6 @@ function resetMenuForm() {
     isVeg: false,
     sortOrder: 0,
   })
-}
-
-function handleMenuImageChange(file) {
-  revokeObjectPreviewUrl(localMenuImagePreviewUrl.value)
-  menuImageFile.value = file
-  localMenuImagePreviewUrl.value = file ? createObjectPreviewUrl(file) : ''
-}
-
-function clearMenuImage() {
-  revokeObjectPreviewUrl(localMenuImagePreviewUrl.value)
-  menuImageFile.value = null
-  localMenuImagePreviewUrl.value = ''
 }
 
 function resetVariantForm() {
@@ -366,16 +351,18 @@ function openCreateModal() {
 }
 
 async function openEditModal(id) {
-  clearMenuImage()
   menuSubmitError.value = ''
+  menuExistingImageUrl.value = ''
+  menuImage.value = { file: null, url: '' }
+  menuFormKey.value++
 
   try {
     const item = await menuStore.fetchMenuItem(id)
     editingMenu.value = item
+    menuExistingImageUrl.value = buildAssetUrl(item.img || '')
     Object.assign(menuFormState, {
       categoryId: item.category?.id || item.categoryId,
       name: item.name,
-      img: item.img || '',
       description: item.description || '',
       price: item.price || 0,
       currency: item.currency || 'LAK',
@@ -405,7 +392,13 @@ async function submitMenuItem() {
   }
 
   try {
-    await menuStore.saveMenuItem({ ...menuFormState, file: menuImageFile.value || undefined }, editingMenu.value?.id)
+    const payload = { ...menuFormState }
+    if (menuImage.value.file) {
+      payload.file = menuImage.value.file
+    } else if (menuImage.value.url) {
+      payload.imageUrl = menuImage.value.url
+    }
+    await menuStore.saveMenuItem(payload, editingMenu.value?.id)
     notification.success({ message: 'Menu item saved' })
     closeMenuModal()
   } catch (error) {
