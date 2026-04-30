@@ -43,11 +43,11 @@
             </a-tag>
           </template>
         </a-table-column>
-        <a-table-column v-if="isSuperAdmin" title="Actions" key="actions" align="right">
+        <a-table-column  title="Actions" key="actions" align="right">
           <template #default="{ record }">
             <div class="flex justify-end gap-2">
               <a-button size="small" @click="openEditModal(record.id)">Edit</a-button>
-              <a-popconfirm title="Delete this restaurant?" @confirm="removeRestaurant(record.id)">
+              <a-popconfirm v-if="isSuperAdmin" title="Delete this restaurant?" @confirm="removeRestaurant(record.id)">
                 <a-button danger size="small">Delete</a-button>
               </a-popconfirm>
             </div>
@@ -151,8 +151,6 @@ function ownerName(ownerId) {
 }
 
 async function openEditModal(id) {
-  if (!isSuperAdmin.value) return
-
   try {
     clearLogoFile()
     submitError.value = ''
