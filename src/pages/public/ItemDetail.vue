@@ -9,7 +9,7 @@
     <template v-if="item">
       <div class="space-y-6">
         <div class="overflow-hidden rounded-[28px] bg-navy-600">
-          <img v-if="item.img" :src="item.img" :alt="item.name" class="h-72 w-full object-cover" />
+          <img v-if="item.img" :src="buildAssetUrl(item.img)" :alt="item.name" class="h-72 w-full object-cover" />
           <div v-else class="flex h-72 items-center justify-center bg-gradient-to-br from-navy-600 to-navy-700 text-brand-400">
             <span class="font-display text-5xl">{{ item.name?.charAt(0) }}</span>
           </div>
@@ -87,6 +87,7 @@
 <script setup>
 import { computed } from 'vue'
 
+import { buildAssetUrl } from '@/services/api'
 import { formatCurrency } from '@/utils/currency'
 
 const props = defineProps({

@@ -4,11 +4,19 @@
       <div class="bg-navy-950 px-6 py-8 text-white">
         <p class="text-xs uppercase tracking-[0.35em] text-brand-300">QR Menu</p>
         <div class="mt-3 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 class="font-display text-4xl">{{ restaurantName }}</h1>
-            <p class="mt-2 text-sm text-slate-400">
-              {{ branchMeta }}
-            </p>
+          <div class="flex items-center gap-4">
+            <img
+              v-if="restaurantLogo"
+              :src="restaurantLogo"
+              :alt="restaurantName"
+              class="h-20 w-20 rounded-3xl object-cover ring-1 ring-white/10"
+            />
+            <div>
+              <h1 class="font-display text-4xl">{{ restaurantName }}</h1>
+              <p class="mt-2 text-sm text-slate-400">
+                {{ branchMeta }}
+              </p>
+            </div>
           </div>
           <div class="rounded-2xl bg-white/10 px-4 py-3 text-sm text-slate-300 font-mono">
             <p>Table: {{ menuStore.publicMenu?.qrcode?.tableNumber || 'Walk-in' }}</p>
@@ -101,6 +109,7 @@ import { useRoute } from 'vue-router'
 import MenuCard from '@/components/menu/MenuCard.vue'
 import AppEmptyState from '@/components/ui/AppEmptyState.vue'
 import AppLoading from '@/components/ui/AppLoading.vue'
+import { buildAssetUrl } from '@/services/api'
 import ItemDetail from './ItemDetail.vue'
 import { useMenuStore } from '@/store/menu'
 
@@ -109,6 +118,7 @@ const menuStore = useMenuStore()
 const activeCategoryId = ref(null)
 
 const restaurantName = computed(() => menuStore.publicMenu?.restaurant?.name || 'Restaurant menu')
+const restaurantLogo = computed(() => buildAssetUrl(menuStore.publicMenu?.restaurant?.logo || ''))
 const branchMeta = computed(() => {
   const branch = menuStore.publicMenu?.branch
   if (!branch) return 'Browse the current menu available for this QR code.'

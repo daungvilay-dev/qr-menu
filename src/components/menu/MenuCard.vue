@@ -7,7 +7,7 @@
     <div class="aspect-[4/3] overflow-hidden bg-navy-600">
       <img
         v-if="item.img"
-        :src="item.img"
+        :src="buildAssetUrl(item.img)"
         :alt="item.name"
         class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
       />
@@ -44,6 +44,7 @@
 </template>
 
 <script setup>
+import { buildAssetUrl } from '@/services/api'
 import { formatCurrency } from '@/utils/currency'
 
 defineProps({
